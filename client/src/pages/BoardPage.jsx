@@ -197,7 +197,7 @@ export default function BoardPage() {
         <p className="text-sm font-medium text-slate-600">{error}</p>
         <button
           onClick={() => navigate(`/t/${teamId}`)}
-          className="text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+          className="text-sm font-semibold text-indigo-400 hover:text-indigo-300"
         >
           Volver al equipo
         </button>
@@ -208,14 +208,14 @@ export default function BoardPage() {
   if (!board) {
     return (
       <div className="flex h-full items-center justify-center">
-        <IconSpinner className="h-6 w-6 text-slate-300" />
+        <IconSpinner className="h-6 w-6 text-slate-600" />
       </div>
     );
   }
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white/80 px-6 py-3.5 backdrop-blur">
+      <header className="flex shrink-0 items-center justify-between gap-4 border-b border-slate-800 bg-slate-950/80 px-6 py-3.5 backdrop-blur">
         <div className="flex min-w-0 items-center gap-3">
           <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: board.color }} />
           {editingName ? (
@@ -228,7 +228,7 @@ export default function BoardPage() {
                 if (e.key === "Enter") saveBoardName();
                 if (e.key === "Escape") setEditingName(false);
               }}
-              className="rounded-lg border border-indigo-300 bg-white px-2 py-1 text-lg font-bold outline-none"
+              className="rounded-lg border border-indigo-500 bg-slate-900 px-2 py-1 text-lg font-bold outline-none"
             />
           ) : (
             <h1
@@ -237,12 +237,12 @@ export default function BoardPage() {
                 setEditingName(true);
               }}
               title="Doble clic para renombrar"
-              className="truncate text-lg font-bold tracking-tight text-slate-900"
+              className="truncate text-lg font-bold tracking-tight text-slate-100"
             >
               {board.name}
             </h1>
           )}
-          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+          <span className="rounded-full bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-500">
             {board.tasks.length} tareas
           </span>
         </div>
@@ -254,14 +254,14 @@ export default function BoardPage() {
               await api.delete(`/boards/${boardId}`);
               navigate(`/t/${teamId}`);
             }}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-500"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-red-500/15 hover:text-red-500"
             title="Eliminar tablero"
           >
             <IconTrash className="h-4 w-4" />
           </button>
           <button
             onClick={() => setAddingColumn(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700"
+            className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500"
           >
             <IconPlus className="h-4 w-4" />
             Columna
@@ -294,7 +294,7 @@ export default function BoardPage() {
 
             <div className="w-72 shrink-0">
               {addingColumn ? (
-                <div className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-900/5 animate-fade-in">
+                <div className="rounded-2xl bg-slate-900 p-3 shadow-sm ring-1 ring-white/5 animate-fade-in">
                   <input
                     autoFocus
                     value={newColumn}
@@ -307,7 +307,7 @@ export default function BoardPage() {
                       }
                     }}
                     placeholder="Nombre de la columna"
-                    className="w-full rounded-xl bg-slate-50 px-3 py-2.5 text-sm outline-none ring-1 ring-transparent transition focus:bg-white focus:ring-indigo-300"
+                    className="w-full rounded-xl bg-slate-800 px-3 py-2.5 text-sm outline-none ring-1 ring-transparent transition focus:bg-slate-800 focus:ring-indigo-500"
                   />
                   <div className="mt-2 flex items-center gap-1.5">
                     <button
@@ -321,7 +321,7 @@ export default function BoardPage() {
                         setAddingColumn(false);
                         setNewColumn("");
                       }}
-                      className="px-2 py-1.5 text-xs font-medium text-slate-500 transition hover:text-slate-700"
+                      className="px-2 py-1.5 text-xs font-medium text-slate-500 transition hover:text-slate-200"
                     >
                       Cancelar
                     </button>
@@ -330,7 +330,7 @@ export default function BoardPage() {
               ) : (
                 <button
                   onClick={() => setAddingColumn(true)}
-                  className="flex w-full items-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-white/50 px-4 py-3 text-sm font-medium text-slate-500 transition hover:border-indigo-300 hover:bg-white hover:text-indigo-600"
+                  className="flex w-full items-center gap-2 rounded-2xl border border-dashed border-slate-700 bg-slate-900/50 px-4 py-3 text-sm font-medium text-slate-500 transition hover:border-indigo-500 hover:bg-slate-800 hover:text-indigo-400"
                 >
                   <IconPlus className="h-4 w-4" />
                   Añadir columna

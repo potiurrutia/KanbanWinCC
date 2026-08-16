@@ -26,10 +26,10 @@ export default function Login() {
   }
 
   return (
-    <div className="relative flex min-h-full items-center justify-center bg-slate-50 p-6">
+    <div className="relative flex min-h-full items-center justify-center bg-slate-950 p-6">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-indigo-200/50 blur-3xl" />
-        <div className="absolute -right-32 -bottom-32 h-96 w-96 rounded-full bg-sky-200/50 blur-3xl" />
+        <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-indigo-500/10 blur-3xl" />
+        <div className="absolute -right-32 -bottom-32 h-96 w-96 rounded-full bg-sky-500/10 blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-sm animate-fade-in">
@@ -39,32 +39,32 @@ export default function Login() {
               <path d="M8 11l4 4 7-7" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">TaskFlow</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-100">TaskFlow</h1>
           <p className="mt-1 text-sm text-slate-500">Gestiona el trabajo de tu equipo</p>
         </div>
 
-        <form onSubmit={onSubmit} className="rounded-2xl bg-white p-6 shadow-xl shadow-slate-900/5 ring-1 ring-slate-900/5">
-          <label className="mb-1 block text-sm font-medium text-slate-700">Email</label>
+        <form onSubmit={onSubmit} className="rounded-2xl bg-slate-900 p-6 shadow-xl shadow-black/20 ring-1 ring-white/5">
+          <label className="mb-1 block text-sm font-medium text-slate-200">Email</label>
           <input
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="tu@empresa.com"
-            className="mb-4 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+            className="mb-4 w-full rounded-xl border border-slate-800 bg-slate-800 px-3.5 py-2.5 text-sm outline-none transition placeholder:text-slate-500 focus:border-indigo-500 focus:bg-slate-800 focus:ring-4 focus:ring-indigo-500/20"
           />
-          <label className="mb-1 block text-sm font-medium text-slate-700">Contraseña</label>
+          <label className="mb-1 block text-sm font-medium text-slate-200">Contraseña</label>
           <input
             type="password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
-            className="mb-5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+            className="mb-5 w-full rounded-xl border border-slate-800 bg-slate-800 px-3.5 py-2.5 text-sm outline-none transition placeholder:text-slate-500 focus:border-indigo-500 focus:bg-slate-800 focus:ring-4 focus:ring-indigo-500/20"
           />
 
           {error && (
-            <div className="mb-4 rounded-xl bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-600 ring-1 ring-red-100">
+            <div className="mb-4 rounded-xl bg-red-500/15 px-3.5 py-2.5 text-sm font-medium text-red-400 ring-1 ring-red-500/20">
               {error}
             </div>
           )}
@@ -81,7 +81,7 @@ export default function Login() {
 
         <p className="mt-6 text-center text-sm text-slate-500">
           ¿No tienes cuenta?{" "}
-          <Link to="/register" className="font-semibold text-indigo-600 hover:text-indigo-700">
+          <Link to="/register" className="font-semibold text-indigo-400 hover:text-indigo-300">
             Regístrate
           </Link>
         </p>

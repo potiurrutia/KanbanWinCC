@@ -13,7 +13,7 @@ const PRIORITIES = [
 
 function Label({ icon, children }) {
   return (
-    <span className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+    <span className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
       {icon}
       {children}
     </span>
@@ -86,15 +86,15 @@ export default function TaskModal({ task, members, columns, onClose, onUpdated, 
     <Modal open onClose={onClose} width="max-w-2xl">
       <div className="max-h-[85vh] overflow-y-auto p-6">
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-600">
             <span className="h-1.5 w-1.5 rounded-full" style={{ background: currentColumn?.color || "#94a3b8" }} />
             {currentColumn?.name}
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-600">
             <IconFlag className="h-3 w-3" style={{ color: currentPriority.color }} />
             Prioridad {currentPriority.label}
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-600">
             Creada por {task.creator_name} · {new Date(task.created_at).toLocaleDateString("es-ES")}
           </span>
         </div>
@@ -104,7 +104,7 @@ export default function TaskModal({ task, members, columns, onClose, onUpdated, 
           onChange={(e) => setTitle(e.target.value)}
           onBlur={saveTitle}
           rows={1}
-          className="w-full resize-none text-xl font-bold leading-snug tracking-tight text-slate-900 outline-none focus:decoration-slate-200 focus:underline focus:underline-offset-4"
+          className="w-full resize-none text-xl font-bold leading-snug tracking-tight text-slate-100 outline-none focus:decoration-slate-600 focus:underline focus:underline-offset-4"
         />
 
         <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -121,8 +121,8 @@ export default function TaskModal({ task, members, columns, onClose, onUpdated, 
                     }}
                     className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
                       priority === p.value
-                        ? "border-slate-900 bg-slate-900 text-white shadow-sm"
-                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                        ? "border-indigo-600 bg-indigo-600 text-white shadow-sm"
+                        : "border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500"
                     }`}
                   >
                     <span
@@ -144,7 +144,7 @@ export default function TaskModal({ task, members, columns, onClose, onUpdated, 
                   setAssigneeId(e.target.value);
                   save({ assignee_id: value });
                 }}
-                className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                className="w-full appearance-none rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20"
               >
                 <option value="">Sin asignar</option>
                 {members.map((m) => (
@@ -164,7 +164,7 @@ export default function TaskModal({ task, members, columns, onClose, onUpdated, 
                   setDueDate(e.target.value);
                   save({ due_date: e.target.value || null });
                 }}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                className="w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20"
               />
             </div>
 
@@ -178,7 +178,7 @@ export default function TaskModal({ task, members, columns, onClose, onUpdated, 
                   const { task: updated } = await api.post(`/tasks/${task.id}/move`, { column_id: next });
                   onUpdated(updated);
                 }}
-                className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                className="w-full appearance-none rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20"
               >
                 {columns.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -189,31 +189,31 @@ export default function TaskModal({ task, members, columns, onClose, onUpdated, 
             </div>
           </div>
 
-          <div className="sm:border-l sm:border-slate-100 sm:pl-6">
-            <span className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-slate-400">Descripción</span>
+          <div className="sm:border-l sm:border-slate-800 sm:pl-6">
+            <span className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-slate-500">Descripción</span>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               onBlur={saveDescription}
               placeholder="Añade una descripción más detallada…"
               rows={5}
-              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm leading-relaxed text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+              className="w-full resize-none rounded-xl border border-slate-800 bg-slate-800 px-3.5 py-2.5 text-sm leading-relaxed text-slate-200 outline-none transition placeholder:text-slate-500 focus:border-indigo-500 focus:bg-slate-800 focus:ring-4 focus:ring-indigo-500/20"
             />
           </div>
         </div>
 
         <div className="mt-8">
-          <span className="mb-3 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+          <span className="mb-3 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
             <IconMessage className="h-3 w-3" />
             Comentarios ({comments ? comments.length : 0})
           </span>
 
           {comments === null ? (
             <div className="flex justify-center py-6">
-              <IconSpinner className="h-5 w-5 text-slate-300" />
+              <IconSpinner className="h-5 w-5 text-slate-600" />
             </div>
           ) : comments.length === 0 ? (
-            <p className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-400">
+            <p className="rounded-xl bg-slate-800 px-4 py-3 text-sm text-slate-500">
               Sin comentarios todavía. Deja el primero.
             </p>
           ) : (
@@ -223,8 +223,8 @@ export default function TaskModal({ task, members, columns, onClose, onUpdated, 
                   <Avatar user={{ name: c.user_name, avatar_color: c.user_color }} size={30} />
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-slate-800">{c.user_name}</span>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-sm font-semibold text-slate-100">{c.user_name}</span>
+                      <span className="text-xs text-slate-500">
                         {new Date(c.created_at).toLocaleString("es-ES", {
                           day: "numeric",
                           month: "short",
@@ -235,7 +235,7 @@ export default function TaskModal({ task, members, columns, onClose, onUpdated, 
                       {c.user_id === user?.id && (
                         <button
                           onClick={() => deleteComment(c)}
-                          className="flex h-5 w-5 items-center justify-center rounded text-slate-300 opacity-0 transition group-hover:opacity-100 hover:text-red-500"
+                          className="flex h-5 w-5 items-center justify-center rounded text-slate-600 opacity-0 transition group-hover:opacity-100 hover:text-red-500"
                         >
                           <IconTrash className="h-3.5 w-3.5" />
                         </button>
@@ -254,7 +254,7 @@ export default function TaskModal({ task, members, columns, onClose, onUpdated, 
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Escribe un comentario…"
-              className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+              className="flex-1 rounded-xl border border-slate-800 bg-slate-800 px-3.5 py-2.5 text-sm outline-none transition placeholder:text-slate-500 focus:border-indigo-500 focus:bg-slate-800 focus:ring-4 focus:ring-indigo-500/20"
             />
             <button
               type="submit"
@@ -266,15 +266,15 @@ export default function TaskModal({ task, members, columns, onClose, onUpdated, 
           </form>
         </div>
 
-        <div className="mt-8 flex justify-between border-t border-slate-100 pt-4">
+        <div className="mt-8 flex justify-between border-t border-slate-800 pt-4">
           <button
             onClick={removeTask}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-red-500 transition hover:bg-red-50"
+            className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-red-500 transition hover:bg-red-500/15"
           >
             <IconTrash className="h-4 w-4" />
             Eliminar tarea
           </button>
-          <div className="text-xs text-slate-300">{saving ? "Guardando…" : "Cambios guardados automáticamente"}</div>
+          <div className="text-xs text-slate-600">{saving ? "Guardando…" : "Cambios guardados automáticamente"}</div>
         </div>
       </div>
     </Modal>

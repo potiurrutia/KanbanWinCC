@@ -12,8 +12,8 @@ function Protected() {
   const { user, loading } = useAuth();
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
-        <IconSpinner className="h-7 w-7 text-slate-300" />
+      <div className="flex h-screen items-center justify-center bg-slate-950">
+        <IconSpinner className="h-7 w-7 text-slate-600" />
       </div>
     );
   }

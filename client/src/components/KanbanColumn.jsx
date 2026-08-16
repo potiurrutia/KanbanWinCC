@@ -53,8 +53,8 @@ export default function KanbanColumn({ column, tasks, onAddTask, onOpenTask, onR
   return (
     <div
       ref={setNodeRef}
-      className={`flex max-h-full w-72 shrink-0 flex-col rounded-2xl bg-slate-100/80 transition ${
-        isOver ? "ring-2 ring-indigo-300" : ""
+      className={`flex max-h-full w-72 shrink-0 flex-col rounded-2xl bg-slate-800/60 transition ${
+        isOver ? "ring-2 ring-indigo-500" : ""
       }`}
     >
       <div className="group flex items-center gap-2 px-3.5 pb-1 pt-3.5">
@@ -69,7 +69,7 @@ export default function KanbanColumn({ column, tasks, onAddTask, onOpenTask, onR
               if (e.key === "Enter") saveRename();
               if (e.key === "Escape") setEditing(false);
             }}
-            className="w-full rounded-md border border-indigo-300 bg-white px-1.5 py-0.5 text-sm font-semibold outline-none"
+            className="w-full rounded-md border border-indigo-500 bg-slate-900 px-1.5 py-0.5 text-sm font-semibold outline-none"
           />
         ) : (
           <h3
@@ -78,18 +78,18 @@ export default function KanbanColumn({ column, tasks, onAddTask, onOpenTask, onR
               setEditing(true);
             }}
             title="Doble clic para renombrar"
-            className="flex-1 truncate text-sm font-semibold text-slate-700"
+            className="flex-1 truncate text-sm font-semibold text-slate-200"
           >
             {column.name}
           </h3>
         )}
-        <span className="text-xs font-medium text-slate-400">{tasks.length}</span>
+        <span className="text-xs font-medium text-slate-500">{tasks.length}</span>
         {!editing && (
           <button
             onClick={() => {
               if (confirm(`¿Eliminar la columna "${column.name}" y sus tareas?`)) onDelete(column);
             }}
-            className="flex h-6 w-6 items-center justify-center rounded-md text-slate-300 opacity-0 transition hover:bg-red-50 hover:text-red-500 group-hover:opacity-100"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-slate-600 opacity-0 transition hover:bg-red-500/15 hover:text-red-500 group-hover:opacity-100"
             title="Eliminar columna"
           >
             <IconTrash className="h-3.5 w-3.5" />
@@ -112,7 +112,7 @@ export default function KanbanColumn({ column, tasks, onAddTask, onOpenTask, onR
         </SortableContext>
 
         {adding ? (
-          <div className="mt-2 rounded-xl bg-white p-2.5 shadow-sm ring-1 ring-slate-900/5 animate-fade-in">
+          <div className="mt-2 rounded-xl bg-slate-900 p-2.5 shadow-sm ring-1 ring-white/5 animate-fade-in">
             <textarea
               autoFocus
               value={newTitle}
@@ -129,7 +129,7 @@ export default function KanbanColumn({ column, tasks, onAddTask, onOpenTask, onR
               }}
               placeholder="Título de la tarea"
               rows={2}
-              className="w-full resize-none rounded-lg bg-slate-50 px-2.5 py-2 text-sm outline-none ring-1 ring-transparent transition focus:bg-white focus:ring-indigo-300"
+              className="w-full resize-none rounded-lg bg-slate-800 px-2.5 py-2 text-sm outline-none ring-1 ring-transparent transition focus:bg-slate-800 focus:ring-indigo-500"
             />
             <div className="mt-2 flex items-center gap-1.5">
               <button
@@ -143,7 +143,7 @@ export default function KanbanColumn({ column, tasks, onAddTask, onOpenTask, onR
                   setAdding(false);
                   setNewTitle("");
                 }}
-                className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100"
+                className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-800"
               >
                 <IconX className="h-4 w-4" />
               </button>
@@ -152,7 +152,7 @@ export default function KanbanColumn({ column, tasks, onAddTask, onOpenTask, onR
         ) : (
           <button
             onClick={() => setAdding(true)}
-            className="mt-2 flex w-full items-center gap-1.5 rounded-xl px-2.5 py-2 text-sm font-medium text-slate-500 transition hover:bg-white hover:text-indigo-600 hover:shadow-sm"
+            className="mt-2 flex w-full items-center gap-1.5 rounded-xl px-2.5 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-800 hover:text-indigo-400 hover:shadow-sm"
           >
             <IconPlus className="h-4 w-4" />
             Añadir tarea

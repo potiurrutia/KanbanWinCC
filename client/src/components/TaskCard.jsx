@@ -14,13 +14,13 @@ export default function TaskCard({ task, onClick, commentCount }) {
   return (
     <div
       onClick={onClick}
-      className="group cursor-pointer rounded-xl bg-white p-3.5 shadow-sm ring-1 ring-slate-900/5 transition hover:shadow-md hover:ring-slate-900/10"
+      className="group cursor-pointer rounded-xl bg-slate-900 p-3.5 shadow-sm ring-1 ring-white/5 transition hover:shadow-md hover:ring-white/10"
     >
       <div className="flex items-start gap-2">
         <span className="mt-1 inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: priority.color }} />
-        <h4 className="flex-1 text-sm font-medium leading-snug text-slate-800">{task.title}</h4>
+        <h4 className="flex-1 text-sm font-medium leading-snug text-slate-100">{task.title}</h4>
         {commentCount > 0 && (
-          <span className="inline-flex shrink-0 items-center gap-1 text-xs text-slate-400">
+          <span className="inline-flex shrink-0 items-center gap-1 text-xs text-slate-500">
             <IconMessage className="h-3.5 w-3.5" />
             {commentCount}
           </span>
@@ -31,7 +31,7 @@ export default function TaskCard({ task, onClick, commentCount }) {
         {task.due_date ? (
           <span
             className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium ${
-              overdue ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-500"
+              overdue ? "bg-red-500/15 text-red-400" : "bg-slate-800 text-slate-500"
             }`}
           >
             <IconCalendar className="h-3 w-3" />
@@ -43,7 +43,7 @@ export default function TaskCard({ task, onClick, commentCount }) {
         {task.assignee_id ? (
           <Avatar user={{ name: task.assignee_name, avatar_color: task.assignee_color }} size={22} />
         ) : (
-          <span className="flex h-5 w-5 items-center justify-center rounded-full border border-dashed border-slate-300 text-slate-300 opacity-0 transition group-hover:opacity-100">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full border border-dashed border-slate-700 text-slate-600 opacity-0 transition group-hover:opacity-100">
             <IconFlag className="h-3 w-3" />
           </span>
         )}

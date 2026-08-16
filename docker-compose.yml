@@ -1,0 +1,15 @@
+services:
+  web:
+    build: .
+    container_name: taskflow
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - JWT_SECRET=${JWT_SECRET:-cambia-este-secreto-por-uno-largo-y-aleatorio}
+    volumes:
+      - taskflow-data:/data
+    restart: unless-stopped
+
+volumes:
+  taskflow-data:

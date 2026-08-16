@@ -1,64 +1,63 @@
 import { Router } from "express";
-import { db, generateInviteCode, transaction } from "../db.js";
+import { get, all, run, transaction, generateInviteCode } from "../db.js";
 import { requireAuth } from "../auth.js";
-import { publicUser } from "./auth.js";
 
 const router = Router();
 router.use(requireAuth);
 
-router.get("/", (req, res) => {
-  const teams = db
-    .prepare(
-      `SELECT t.*, u.name AS owner_name,
-        (SELECT COUNT(*) FROM team_members m WHERE m.team_id = t.id) AS member_count
-       FROM teams t
-       JOIN team_members tm ON tm.team_id = t.id
-       JOIN users u ON u.id = t.owner_id
-       WHERE tm.user_id = ?
-       ORDER BY t.created_at DESC`
-    )
-    .all(req.userId);
-  res.json({ teams });
+router.get("/", async (req, res) => {
+  const teams = await all(
+    `SELECT t.*, u.name AS owner_name,
+      (SELECT COUNT(*) FROM team_members m WHERE m.team_id = t.id) AS member_count
+     FROM teams t
+     JOIN team_members tm ON tm.team_id = t.id
+     JOIN users u ON u.id = t.owner_id
+     WHERE tm.user_id = ?
+     ORDER BY t.created_at DESC`,
+    [req.userId]
+  );
+  res.json({ teams: teams.map((t) => ({ ...t, member_count: Number(t.member_count) })) });
 });
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   const { name, description } = req.body || {};
   if (!name || !name.trim()) return res.status(400).json({ error: "El nombre del equipo es obligatorio" });
   const code = generateInviteCode();
-  const id = transaction(() => {
-    const team = db
-      .prepare("INSERT INTO teams (name, description, owner_id, invite_code) VALUES (?, ?, ?, ?)")
-      .run(name.trim(), (description || "").trim(), req.userId, code);
-    db.prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (?, ?, ?)").run(
+  const id = await transaction(async (q) => {
+    const team = await q.run(
+      "INSERT INTO teams (name, description, owner_id, invite_code) VALUES (?, ?, ?, ?) RETURNING id",
+      [name.trim(), (description || "").trim(), req.userId, code]
+    );
+    await q.run("INSERT INTO team_members (team_id, user_id, role) VALUES (?, ?, ?)", [
       team.lastInsertRowid,
       req.userId,
-      "owner"
+      "owner",
+    ]);
+    const board = await q.run(
+      "INSERT INTO boards (team_id, name, color, position) VALUES (?, ?, ?, 0) RETURNING id",
+      [team.lastInsertRowid, "General", "#6366f1"]
     );
-    const board = db
-      .prepare("INSERT INTO boards (team_id, name, color, position) VALUES (?, ?, ?, 0)")
-      .run(team.lastInsertRowid, "General", "#6366f1");
     const defaults = [
       ["Por hacer", "#94a3b8"],
       ["En progreso", "#f59e0b"],
       ["Hecho", "#10b981"],
     ];
-    defaults.forEach(([colName, color], i) => {
-      db.prepare("INSERT INTO columns (board_id, name, color, position) VALUES (?, ?, ?, ?)").run(
+    for (let i = 0; i < defaults.length; i++) {
+      const [colName, colColor] = defaults[i];
+      await q.run("INSERT INTO columns (board_id, name, color, position) VALUES (?, ?, ?, ?)", [
         board.lastInsertRowid,
         colName,
-        color,
-        i
-      );
-    });
+        colColor,
+        i,
+      ]);
+    }
     return team.lastInsertRowid;
   });
-  res.status(201).json({ team: getTeam(id) });
+  res.status(201).json({ team: await getTeam(id) });
 });
 
-function membership(req, res, teamId, roles = ["owner", "admin"]) {
-  const m = db
-    .prepare("SELECT * FROM team_members WHERE team_id = ? AND user_id = ?")
-    .get(teamId, req.userId);
+async function membership(req, res, teamId, roles = ["owner", "admin"]) {
+  const m = await get("SELECT * FROM team_members WHERE team_id = ? AND user_id = ?", [teamId, req.userId]);
   if (!m) {
     res.status(403).json({ error: "No eres miembro de este equipo" });
     return null;
@@ -70,112 +69,104 @@ function membership(req, res, teamId, roles = ["owner", "admin"]) {
   return m;
 }
 
-function getTeam(id) {
-  const team = db.prepare("SELECT * FROM teams WHERE id = ?").get(id);
+async function getTeam(id) {
+  const team = await get("SELECT * FROM teams WHERE id = ?", [id]);
   if (!team) return null;
-  const members = db
-    .prepare(
-      `SELECT tm.role, u.id, u.name, u.email, u.avatar_color
-       FROM team_members tm JOIN users u ON u.id = tm.user_id
-       WHERE tm.team_id = ? ORDER BY tm.role DESC, u.name`
-    )
-    .all(id);
+  const members = await all(
+    `SELECT tm.role, u.id, u.name, u.email, u.avatar_color
+     FROM team_members tm JOIN users u ON u.id = tm.user_id
+     WHERE tm.team_id = ? ORDER BY tm.role DESC, u.name`,
+    [id]
+  );
   return { ...team, members };
 }
 
-router.get("/:id", (req, res) => {
-  const m = membership(req, res, Number(req.params.id));
+router.get("/:id", async (req, res) => {
+  const m = await membership(req, res, Number(req.params.id));
   if (!m) return;
-  res.json({ team: getTeam(Number(req.params.id)) });
+  res.json({ team: await getTeam(Number(req.params.id)) });
 });
 
-router.patch("/:id", (req, res) => {
-  const m = membership(req, res, Number(req.params.id));
+router.patch("/:id", async (req, res) => {
+  const m = await membership(req, res, Number(req.params.id));
   if (!m) return;
   const { name, description } = req.body || {};
-  const team = db.prepare("SELECT * FROM teams WHERE id = ?").get(Number(req.params.id));
+  const team = await get("SELECT * FROM teams WHERE id = ?", [Number(req.params.id)]);
   const nextName = name !== undefined ? name.trim() : team.name;
   if (!nextName) return res.status(400).json({ error: "El nombre no puede estar vacío" });
-  db.prepare("UPDATE teams SET name = ?, description = ? WHERE id = ?").run(
+  await run("UPDATE teams SET name = ?, description = ? WHERE id = ?", [
     nextName,
     description !== undefined ? description : team.description,
-    team.id
-  );
-  res.json({ team: getTeam(team.id) });
+    team.id,
+  ]);
+  res.json({ team: await getTeam(team.id) });
 });
 
-router.delete("/:id", (req, res) => {
-  const m = membership(req, res, Number(req.params.id), ["owner"]);
+router.delete("/:id", async (req, res) => {
+  const m = await membership(req, res, Number(req.params.id), ["owner"]);
   if (!m) return;
-  db.prepare("DELETE FROM teams WHERE id = ?").run(Number(req.params.id));
+  await run("DELETE FROM teams WHERE id = ?", [Number(req.params.id)]);
   res.json({ ok: true });
 });
 
-router.post("/join", (req, res) => {
+router.post("/join", async (req, res) => {
   const { code } = req.body || {};
   if (!code) return res.status(400).json({ error: "Introduce el código de invitación" });
-  const team = db
-    .prepare("SELECT * FROM teams WHERE UPPER(invite_code) = ?")
-    .get(String(code).trim().toUpperCase());
+  const team = await get("SELECT * FROM teams WHERE UPPER(invite_code) = ?", [String(code).trim().toUpperCase()]);
   if (!team) return res.status(404).json({ error: "Código de invitación no válido" });
-  const existing = db
-    .prepare("SELECT * FROM team_members WHERE team_id = ? AND user_id = ?")
-    .get(team.id, req.userId);
-  if (existing) return res.json({ team: getTeam(team.id), already: true });
-  db.prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (?, ?, 'member')").run(
+  const existing = await get("SELECT * FROM team_members WHERE team_id = ? AND user_id = ?", [
     team.id,
-    req.userId
-  );
-  res.status(201).json({ team: getTeam(team.id) });
+    req.userId,
+  ]);
+  if (existing) return res.json({ team: await getTeam(team.id), already: true });
+  await run("INSERT INTO team_members (team_id, user_id, role) VALUES (?, ?, 'member')", [team.id, req.userId]);
+  res.status(201).json({ team: await getTeam(team.id) });
 });
 
-router.post("/:id/join", (req, res) => {
+router.post("/:id/join", async (req, res) => {
   const { code } = req.body || {};
   if (!code) return res.status(400).json({ error: "Introduce el código de invitación" });
-  const team = db
-    .prepare("SELECT * FROM teams WHERE UPPER(invite_code) = ?")
-    .get(String(code).trim().toUpperCase());
+  const team = await get("SELECT * FROM teams WHERE UPPER(invite_code) = ?", [String(code).trim().toUpperCase()]);
   if (!team) return res.status(404).json({ error: "Código de invitación no válido" });
-  const existing = db
-    .prepare("SELECT * FROM team_members WHERE team_id = ? AND user_id = ?")
-    .get(team.id, req.userId);
-  if (existing) return res.json({ team: getTeam(team.id), already: true });
-  db.prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (?, ?, 'member')").run(
+  const existing = await get("SELECT * FROM team_members WHERE team_id = ? AND user_id = ?", [
     team.id,
-    req.userId
-  );
-  res.status(201).json({ team: getTeam(team.id) });
+    req.userId,
+  ]);
+  if (existing) return res.json({ team: await getTeam(team.id), already: true });
+  await run("INSERT INTO team_members (team_id, user_id, role) VALUES (?, ?, 'member')", [team.id, req.userId]);
+  res.status(201).json({ team: await getTeam(team.id) });
 });
 
-router.post("/:id/members", (req, res) => {
-  const m = membership(req, res, Number(req.params.id), ["owner", "admin"]);
+router.post("/:id/members", async (req, res) => {
+  const m = await membership(req, res, Number(req.params.id), ["owner", "admin"]);
   if (!m) return;
   const { email } = req.body || {};
   if (!email) return res.status(400).json({ error: "El email es obligatorio" });
-  const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email.trim().toLowerCase());
+  const user = await get("SELECT * FROM users WHERE email = ?", [email.trim().toLowerCase()]);
   if (!user) return res.status(404).json({ error: "No existe ningún usuario con ese email" });
-  const existing = db
-    .prepare("SELECT * FROM team_members WHERE team_id = ? AND user_id = ?")
-    .get(Number(req.params.id), user.id);
-  if (existing) return res.status(409).json({ error: "Ese usuario ya es miembro" });
-  db.prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (?, ?, 'member')").run(
+  const existing = await get("SELECT * FROM team_members WHERE team_id = ? AND user_id = ?", [
     Number(req.params.id),
-    user.id
-  );
-  res.status(201).json({ team: getTeam(Number(req.params.id)) });
+    user.id,
+  ]);
+  if (existing) return res.status(409).json({ error: "Ese usuario ya es miembro" });
+  await run("INSERT INTO team_members (team_id, user_id, role) VALUES (?, ?, 'member')", [
+    Number(req.params.id),
+    user.id,
+  ]);
+  res.status(201).json({ team: await getTeam(Number(req.params.id)) });
 });
 
-router.delete("/:id/members/:userId", (req, res) => {
-  const m = membership(req, res, Number(req.params.id), ["owner", "admin"]);
+router.delete("/:id/members/:userId", async (req, res) => {
+  const m = await membership(req, res, Number(req.params.id), ["owner", "admin"]);
   if (!m) return;
   const teamId = Number(req.params.id);
   const userId = Number(req.params.userId);
   if (userId === req.userId) return res.status(400).json({ error: "No puedes eliminarte a ti mismo" });
-  const target = db.prepare("SELECT * FROM team_members WHERE team_id = ? AND user_id = ?").get(teamId, userId);
+  const target = await get("SELECT * FROM team_members WHERE team_id = ? AND user_id = ?", [teamId, userId]);
   if (!target) return res.status(404).json({ error: "El usuario no es miembro" });
   if (target.role === "owner") return res.status(403).json({ error: "No puedes eliminar al propietario" });
-  db.prepare("DELETE FROM team_members WHERE team_id = ? AND user_id = ?").run(teamId, userId);
-  res.json({ team: getTeam(teamId) });
+  await run("DELETE FROM team_members WHERE team_id = ? AND user_id = ?", [teamId, userId]);
+  res.json({ team: await getTeam(teamId) });
 });
 
 export default router;

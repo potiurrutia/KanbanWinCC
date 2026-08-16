@@ -17,17 +17,17 @@ Gestor de tareas para equipos de trabajo, minimalista y funcional, tipo kanban. 
 | --- | --- |
 | Frontend | React 19 + Vite + Tailwind CSS 4 + @dnd-kit |
 | Backend | Node.js + Express |
-| Base de datos | SQLite (módulo nativo `node:sqlite`, sin dependencias externas) |
+| Base de datos | SQLite (`node:sqlite`) por defecto, **PostgreSQL** si se define `DATABASE_URL` |
 | Autenticación | JWT + contraseñas cifradas con bcrypt |
 
 ## Estructura
 
 ```
 taskflow/
-├─ client/          # Frontend React (Vite)
-├─ server/          # API Express + SQLite
-├─ Dockerfile       # Build de producción (un solo contenedor)
-└─ docker-compose.yml
+├── client/          # Frontend React (Vite)
+├── server/          # API Express + SQLite/PostgreSQL
+├── Dockerfile       # Build de producción (un solo contenedor)
+└── docker-compose.yml
 ```
 
 ## Requisitos
@@ -73,30 +73,54 @@ cd ../server && npm start      # sirve la app + API en el puerto 4000
 
 Abre **http://localhost:4000**.
 
-## Despliegue
+## Base de datos
 
-### Opción A: VPS con Docker (recomendada)
+- **Por defecto**: SQLite, el fichero se crea automáticamente en `server/data/taskflow.db` (ignorado por git).
+- **PostgreSQL**: si defines la variable `DATABASE_URL`, el servidor usa PostgreSQL en lugar de SQLite. Las tablas se crean automáticamente al arrancar. El esquema y las consultas son compatibles con ambos motores.
 
-Con un VPS de ~5 €/mes (Hetzner, DigitalOcean…):
+## Despliegue en Render (gratis + datos persistentes)
+
+Render no permite disco persistente en el plan gratuito, así que usaremos una base de datos PostgreSQL externa (gratis).
+
+### 1. Sube el proyecto a GitHub
 
 ```bash
-git clone <tu-repo> && cd taskflow
-docker compose up -d --build
+git init && git add -A && git commit -m "Inicial"
+# crea un repositorio en https://github.com/new y luego:
+git remote add origin https://github.com/<usuario>/taskflow.git
+git push -u origin main
 ```
 
-La app quedará en el puerto **4000**. Pon delante un proxy (Caddy, Nginx o Traefik) para HTTPS.
+### 2. Crea la base de datos Postgres gratis
 
-### Opción B: Railway
+- En https://dashboard.render.com/new → **PostgreSQL**.
+- Elige el plan **Free** (256 MB, suficiente).
+- Render te dará una **Internal Database URL** (connection string). Guárdala.
 
-1. Sube el repositorio a GitHub.
-2. En Railway, crea un servicio **"Deploy from GitHub repo"**.
-3. Railway detectará el `Dockerfile` automáticamente.
-4. Añade la variable `JWT_SECRET` con un valor aleatorio.
-5. Añade un volumen persistente en `/data` para que la base de datos no se pierda al redeployar.
+> Nota: el plan gratuito de Postgres de Render puede expirar a los ~30 días. Alternativa gratis sin expiración: **Neon** o **Supabase** (copian el connection string y lo pegas en el paso 4).
 
-### Opción C: Vercel + Postgres
+### 3. Crea el Web Service
 
-Vercel no sirve bien con una base de datos en fichero (su filesystem es efímero). Si quieres Vercel de todas formas, habría que migrar SQLite a Postgres (p. ej. Neon o Supabase, gratis). Es un cambio acotado al módulo `server/src/db.js`, pero yo recomendaría Docker + VPS para un uso diario de trabajo.
+- En https://dashboard.render.com/new → **Web Service** → conecta el repositorio de GitHub.
+- Render detectará el `Dockerfile` automáticamente.
+- Elegir plan **Free** (la app duerme tras ~15 min sin tráfico y despierta sola; el primer acceso puede tardar ~30 s).
+- Puedes reducir el coste de horas al mínimo con **Auto-Suspend** activado.
+
+### 4. Variables de entorno
+
+En el Web Service, añade:
+
+| Variable | Valor |
+| --- | --- |
+| `JWT_SECRET` | Un valor largo y aleatorio (ej. `openssl rand -hex 32`) |
+| `DATABASE_URL` | La Internal Database URL de Render (o de Neon/Supabase) |
+
+### 5. Despliega
+
+Pulsa **Deploy**. La primera vez tarda unos minutos en compilar la imagen de Docker. Después:
+
+- App: `https://<nombre>.onrender.com`
+- `https://<nombre>.onrender.com/api/health` debe responder `{"status":"ok"}`.
 
 ## Variables de entorno
 
@@ -104,16 +128,17 @@ Vercel no sirve bien con una base de datos en fichero (su filesystem es efímero
 | --- | --- | --- |
 | `PORT` | Puerto del servidor | `4000` |
 | `JWT_SECRET` | Secreto para firmar sesiones. ¡Cambia el valor en producción! | `taskflow-secret-change-me` |
-| `DATABASE_PATH` | Ruta del fichero de la base de datos | `server/data/taskflow.db` |
+| `DATABASE_URL` | Connection string de PostgreSQL. Si está definida, se usa Postgres. | vacío (usa SQLite) |
+| `DATABASE_PATH` | Ruta del fichero SQLite | `server/data/taskflow.db` |
 
 ## Seguridad
 
 - Las contraseñas se guardan cifradas (bcrypt).
 - Todas las rutas de la API verifican la sesión JWT y la pertenencia al equipo.
 - Cambia siempre `JWT_SECRET` en producción.
-- Para uso público en internet, usa HTTPS (proxy tipo Caddy/Nginx).
+- Para uso público en internet, usa HTTPS (Render lo da automáticamente).
 
 ## Notas
 
-- La base de datos se crea automáticamente en `server/data/taskflow.db` (ignorada por git).
 - No se envían emails: la invitación es mediante código (más simple y sin depender de servicios externos). Para añadir un miembro por email, esa persona debe tener ya una cuenta.
+- En el plan gratuito de Render la app se apaga por inactividad; los datos no se pierden porque viven en Postgres.
